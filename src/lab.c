@@ -167,7 +167,7 @@ void *dequeue(queue_t q) {
     }
 
     // If the queue is shutting down, unlock and return NULL
-    if (q->shutdown) {
+    if (q->shutdown && q->size == 0) {
         pthread_mutex_unlock(&q->lock);
         return NULL;
     }
