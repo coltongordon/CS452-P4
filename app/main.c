@@ -140,24 +140,29 @@ int main(int argc, char *argv[])
     switch (c)
     {
       case 'c':
-      numc = atoi(optarg);
+        numc = atoi(optarg);
       break;
       case 'p':
-      nump = atoi(optarg);
+        nump = atoi(optarg);
       ;
       break;
+
       case 'i':
-      numitems = atoi(optarg);
+        numitems = atoi(optarg);
       break;
+
       case 's':
-      queue_size = atoi(optarg);
+        queue_size = atoi(optarg);
       break;
+
       case 'd':
-      delay = true;
+        delay = true;
       break;
+
       case 'h':
-      usage(argv[0]);
+        usage(argv[0]);
       break;
+      
       default: /* ? */
       usage(argv[0]);
     }
