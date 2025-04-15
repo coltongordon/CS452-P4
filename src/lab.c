@@ -35,25 +35,38 @@ typedef struct queue *queue_t{
     * @param capacity the maximum capacity of the queue
     * @return A fully initialized queue
     */
-queue_t queue_init(int capacity){
+
+queue_t queue_init(int capacity) {
+    // Ensure the capacity is valid (greater than 0)
     if (capacity <= 0)
         return NULL;
+
+    // Allocate memory for the queue structure
     queue_t q = malloc(sizeof(struct queue));
     if (q == NULL)
         return NULL;
-    q->capacity = capacity;
-    q->size = 0;
-    q->head = 0;
-    q->tail = 0;
-    q->shutdown = false;
+
+    // Initialize the queue's fields
+    q->capacity = capacity; // Set the maximum capacity
+    q->size = 0;            // Initially, the queue is empty
+    q->head = 0;            // Head starts at index 0
+    q->tail = 0;            // Tail starts at index 0
+    q->shutdown = false;    // Queue is not in shutdown mode
+
+    // Allocate memory for the data array
     q->data = malloc(sizeof(void *) * capacity);
     if (q->data == NULL) {
+        // If allocation fails, free the queue structure and return NULL
         free(q);
         return NULL;
     }
-    pthread_mutex_init(&q->lock, NULL);
-    pthread_cond_init(&q->not_empty, NULL);
-    pthread_cond_init(&q->not_full, NULL);
+
+    // Initialize the mutex and condition variables
+    pthread_mutex_init(&q->lock, NULL);       // Mutex for thread safety
+    pthread_cond_init(&q->not_empty, NULL);  // Condition variable for "not empty"
+    pthread_cond_init(&q->not_full, NULL);   // Condition variable for "not full"
+
+    // Return the fully initialized queue
     return q;
 }
 
@@ -63,16 +76,27 @@ queue_t queue_init(int capacity){
     *
     * @param q a queue to free
     */
-void queue_destroy(queue_t q){
-    if (q == NULL)
+void queue_destroy(queue_t q) {
+    if (q == NULL) // Check if the queue is NULL, nothing to destroy
         return;
+
+    // Free the memory allocated for the data array
     free(q->data);
+
+    // Free the memory allocated for the queue structure
     free(q);
+
+    // Set the queue pointer to NULL to avoid dangling pointers
     q = NULL;
+
+    // Destroy the mutex to release resources
     pthread_mutex_destroy(&q->lock);
+
+    // Destroy the condition variables to release resources
     pthread_cond_destroy(&q->not_empty);
     pthread_cond_destroy(&q->not_full);
-    return;
+
+    return; // Return after cleanup
 }
 
 
@@ -83,21 +107,40 @@ void queue_destroy(queue_t q){
     * @param data the data to add
     */
 void enqueue(queue_t q, void *data){
+    // Check if the queue or data is NULL, if so, return immediately
     if (q == NULL || data == NULL)
         return;
+
+    // Lock the queue to ensure thread safety
     pthread_mutex_lock(&q->lock);
+
+    // Wait until there is space in the queue or the queue is shutting down
     while (q->size == q->capacity && !q->shutdown) {
         pthread_cond_wait(&q->not_full, &q->lock);
     }
+
+    // If the queue is shutting down, unlock and return
     if (q->shutdown) {
         pthread_mutex_unlock(&q->lock);
         return;
     }
+
+    // Add the data to the tail of the queue
     q->data[q->tail] = data;
+
+    // Update the tail index, wrapping around if necessary
     q->tail = (q->tail + 1) % q->capacity;
+
+    // Increment the size of the queue
     q->size++;
+
+    // Signal any waiting threads that the queue is not empty
     pthread_cond_signal(&q->not_empty);
+
+    // Unlock the queue
     pthread_mutex_unlock(&q->lock);
+
+    // Return after successfully enqueuing the data
     return;
 }
 
@@ -107,22 +150,41 @@ void enqueue(queue_t q, void *data){
     *
     * @param q the queue
     */
-void *dequeue(queue_t q){
+void *dequeue(queue_t q) {
+    // Check if the queue is NULL, if so, return NULL
     if (q == NULL)
         return NULL;
+
+    // Lock the queue to ensure thread safety
     pthread_mutex_lock(&q->lock);
+
+    // Wait until there is data in the queue or the queue is shutting down
     while (q->size == 0 && !q->shutdown) {
         pthread_cond_wait(&q->not_empty, &q->lock);
     }
+
+    // If the queue is shutting down, unlock and return NULL
     if (q->shutdown) {
         pthread_mutex_unlock(&q->lock);
         return NULL;
     }
+
+    // Retrieve the data from the head of the queue
     void *data = q->data[q->head];
+
+    // Update the head index, wrapping around if necessary
     q->head = (q->head + 1) % q->capacity;
+
+    // Decrement the size of the queue
     q->size--;
+
+    // Signal any waiting threads that the queue is not full
     pthread_cond_signal(&q->not_full);
+
+    // Unlock the queue
     pthread_mutex_unlock(&q->lock);
+
+    // Return the dequeued data
     return data;
 }
 
@@ -133,14 +195,25 @@ void *dequeue(queue_t q){
     *
     * @param q The queue
     */
-void queue_shutdown(queue_t q){
+void queue_shutdown(queue_t q) {
+    // Check if the queue is NULL, if so, return immediately
     if (q == NULL)
         return;
+
+    // Lock the queue to ensure thread safety
     pthread_mutex_lock(&q->lock);
+
+    // Set the shutdown flag to true
     q->shutdown = true;
-    pthread_cond_broadcast(&q->not_empty);
-    pthread_cond_broadcast(&q->not_full);
+
+    // Broadcast to all waiting threads that the queue is shutting down
+    pthread_cond_broadcast(&q->not_empty); // Notify threads waiting for the queue to be not empty
+    pthread_cond_broadcast(&q->not_full); // Notify threads waiting for the queue to be not full
+
+    // Unlock the queue
     pthread_mutex_unlock(&q->lock);
+
+    // Return after setting the shutdown flag and notifying threads
     return;
 }
 
@@ -150,12 +223,21 @@ void queue_shutdown(queue_t q){
     *
     * @param q the queue
     */
-bool is_empty(queue_t q){
+bool is_empty(queue_t q) {
+    // Check if the queue is NULL, if so, return false
     if (q == NULL)
         return false;
+
+    // Lock the queue to ensure thread safety
     pthread_mutex_lock(&q->lock);
+
+    // Check if the size of the queue is 0 (empty)
     bool empty = (q->size == 0);
+
+    // Unlock the queue after checking
     pthread_mutex_unlock(&q->lock);
+
+    // Return whether the queue is empty
     return empty;
 }
 
@@ -166,10 +248,19 @@ bool is_empty(queue_t q){
     * @param q The queue
     */
 bool is_shutdown(queue_t q){
+    // Check if the queue is NULL, if so, return false
     if (q == NULL)
         return false;
+
+    // Lock the queue to ensure thread safety
     pthread_mutex_lock(&q->lock);
+
+    // Retrieve the current value of the shutdown flag
     bool shutdown = q->shutdown;
+
+    // Unlock the queue after checking the shutdown flag
     pthread_mutex_unlock(&q->lock);
+
+    // Return whether the queue is in shutdown mode
     return shutdown;
 }
