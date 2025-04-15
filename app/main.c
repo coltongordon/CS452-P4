@@ -6,6 +6,8 @@
 #include <time.h>
 #include <sys/time.h> /* for gettimeofday system call */
 #include "../src/lab.h"
+#define _GNU_SOURCE
+#define _POSIX_C_SOURCE 200809L
 
 
 #define UNUSED(x) (void)x
@@ -107,8 +109,7 @@ static void *consumer(void *args)
       // because we are just cleaning up all the items.
       if (!is_shutdown(pc_queue))
       {
-        fprintf(stderr, "ERROR: Got a null item when queue was not
-        shutdown!\n");
+        fprintf(stderr, "ERROR: Got a null item when queue was not shutdown!\n");
       }
       break;
     }
@@ -120,10 +121,8 @@ static void *consumer(void *args)
 
 static void usage(char *n)
 {
-  fprintf(stderr, "Usage: %s [-c num consumer] [-p num producer] [-i num items]
-  [-s queue size] <-d introduce delay>\n", n);
-  fprintf(stderr, "-d will introduce a random delay between consumer and
-  producer");
+  fprintf(stderr, "Usage: %s [-c num consumer] [-p num producer] [-i num items] [-s queue size] <-d introduce delay>\n", n);
+  fprintf(stderr, "-d will introduce a random delay between consumer and producer");
   exit(EXIT_FAILURE);
 }
 
@@ -168,8 +167,7 @@ int main(int argc, char *argv[])
     nump = MAX_P;
 
   int per_thread = numitems / nump;
-  fprintf(stderr, "Simulating %d producers %d consumers with %d items per thread
-  and a queue size of %d\n", nump, numc, per_thread, queue_size);
+  fprintf(stderr, "Simulating %d producers %d consumers with %d items per thread and a queue size of %d\n", nump, numc, per_thread, queue_size);
   
   // Start our timing
   double end = 0;
