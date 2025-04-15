@@ -10,13 +10,14 @@
 #include <errno.h>
 #include <assert.h>
 #include <signal.h>
-#include "queue.h"
+#include <sys/queue.h> // Ensure queue.h is in the same directory or adjust the include path
+#define _POSIX_C_SOURCE 200809L
 
 
 /**
     * @brief opaque type definition for a queue
     */
-typedef struct queue *queue_t{
+struct queue {
     int capacity; /* maximum capacity of the queue */
     int size; /* current size of the queue */
     void **data; /* data in the queue */
@@ -26,7 +27,9 @@ typedef struct queue *queue_t{
     pthread_cond_t not_empty; /* condition variable for not empty */
     pthread_cond_t not_full; /* condition variable for not full */
     bool shutdown; /* flag to indicate if the queue is shutting down */
-} queue_t;
+};
+
+typedef struct queue *queue_t;
 
 
 /**
