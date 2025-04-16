@@ -46,8 +46,13 @@ queue_t queue_init(int capacity) {
 
     // Allocate memory for the queue structure
     queue_t q = malloc(sizeof(struct queue));
-    if (q == NULL)
+    if (q == NULL) {
         return NULL;
+    }
+    if (q->data == NULL) {
+        free(q);
+        return NULL;
+    }
 
     // Initialize the queue's fields
     q->capacity = capacity; // Set the maximum capacity
@@ -68,7 +73,8 @@ queue_t queue_init(int capacity) {
     pthread_mutex_init(&q->lock, NULL);       // Mutex for thread safety
     pthread_cond_init(&q->not_empty, NULL);  // Condition variable for "not empty"
     pthread_cond_init(&q->not_full, NULL);   // Condition variable for "not full"
-
+    free(q->data); // Free the data pointer to avoid memory leak
+    free(q); // Free the queue structure to avoid memory leak
     // Return the fully initialized queue
     return q;
 }
