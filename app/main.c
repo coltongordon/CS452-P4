@@ -1,14 +1,12 @@
+#define _POSIX_C_SOURCE 200809L // Define before including unistd.h
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <unistd.h>
 #include <stdbool.h>
 #include <time.h>
 #include <sys/time.h> /* for gettimeofday system call */
 #include "../src/lab.h"
-#define _GNU_SOURCE
-#define _POSIX_C_SOURCE 200809L
-
 
 #define UNUSED(x) (void)x
 #define MAX_C 8 /* Maximum number of consumer threads */
