@@ -73,8 +73,8 @@ queue_t queue_init(int capacity) {
     pthread_mutex_init(&q->lock, NULL);       // Mutex for thread safety
     pthread_cond_init(&q->not_empty, NULL);  // Condition variable for "not empty"
     pthread_cond_init(&q->not_full, NULL);   // Condition variable for "not full"
-    free(q->data); // Free the data pointer to avoid memory leak
-    free(q); // Free the queue structure to avoid memory leak
+    // free(q->data); // Free the data pointer to avoid memory leak
+    // free(q); // Free the queue structure to avoid memory leak
     // Return the fully initialized queue
     return q;
 }
@@ -88,15 +88,8 @@ queue_t queue_init(int capacity) {
 void queue_destroy(queue_t q) {
     if (q == NULL) // Check if the queue is NULL, nothing to destroy
         return;
-
-    // Free the memory allocated for the data array
-    free(q->data);
-
-    // Free the memory allocated for the queue structure
-    free(q);
-
     // Set the queue pointer to NULL to avoid dangling pointers
-    q = NULL;
+    // q = NULL;
 
     // Destroy the mutex to release resources
     pthread_mutex_destroy(&q->lock);
@@ -104,6 +97,13 @@ void queue_destroy(queue_t q) {
     // Destroy the condition variables to release resources
     pthread_cond_destroy(&q->not_empty);
     pthread_cond_destroy(&q->not_full);
+
+    // Free the memory allocated for the data array
+    free(q->data);
+    
+    // Free the memory allocated for the queue structure
+    free(q);
+
 
     return; // Return after cleanup
 }
