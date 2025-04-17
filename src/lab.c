@@ -103,7 +103,7 @@ void queue_destroy(queue_t q) {
     
     // Free the memory allocated for the queue structure
     free(q);
-
+    q = NULL;
 
     return; // Return after cleanup
 }
