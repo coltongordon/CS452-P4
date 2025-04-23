@@ -49,10 +49,10 @@ queue_t queue_init(int capacity) {
     if (q == NULL) {
         return NULL;
     }
-    if (q->data == NULL) {
-        free(q);
-        return NULL;
-    }
+    // if (q->data == NULL) {
+    //     free(q);
+    //     return NULL;
+    // }
 
     // Initialize the queue's fields
     q->capacity = capacity; // Set the maximum capacity
